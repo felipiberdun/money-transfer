@@ -1,9 +1,11 @@
 package com.felipiberdun.application.account
 
 import com.felipiberdun.domain.accounts.*
-import io.micronaut.http.*
 import io.micronaut.http.HttpResponse.*
+import io.micronaut.http.HttpResponseFactory
 import io.micronaut.http.HttpStatus.CONFLICT
+import io.micronaut.http.MediaType
+import io.micronaut.http.MutableHttpResponse
 import io.micronaut.http.annotation.*
 import io.micronaut.http.uri.UriBuilder
 import io.micronaut.runtime.server.EmbeddedServer
