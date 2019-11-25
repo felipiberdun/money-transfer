@@ -1,3 +1,12 @@
 micronaut:
   application:
     name: Money Transfer
+
+jackson:
+  serialization:
+    indentOutput: true
+    writeDatesAsTimestamps: false
+  deserialization:
+    failOnUnknownProperties: false
+  serializationInclusion: NON_NULL
+  propertyNamingStrategy: LOWER_CAMEL_CASE
