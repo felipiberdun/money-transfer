@@ -16,7 +16,7 @@ class AccountInMemoryRepository : AccountRepository {
     private val accounts: ConcurrentMap<UUID, Account> = ConcurrentHashMap()
 
     override fun findById(id: UUID): Maybe<Account> {
-        return accounts[id]?.let { Maybe.just(it) } ?: Maybe.empty<Account>()
+        return Maybe.defer { accounts[id]?.let { Maybe.just(it) } ?: Maybe.empty<Account>() }
     }
 
     override fun createAccount(account: Account): Single<Account> {

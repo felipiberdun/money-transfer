@@ -5,8 +5,8 @@ import java.time.LocalDateTime
 import java.util.*
 
 object InvalidTransactionAmmountException : Exception()
-object AccountNotFoundException : Exception()
-class InsufficientAmountException(val accountId: UUID) : Exception()
+class AccountNotFoundException(val accountId: UUID) : Exception()
+class InsufficientAmountException(val accountId: UUID, val amount: Float) : Exception()
 
 
 enum class TransactionType {
