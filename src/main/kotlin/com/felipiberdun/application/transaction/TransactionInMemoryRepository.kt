@@ -1,6 +1,7 @@
 package com.felipiberdun.application.transaction
 
 import com.felipiberdun.domain.transaction.*
+import io.reactivex.Maybe
 import io.reactivex.Single
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
@@ -25,6 +26,11 @@ class TransactionInMemoryRepository : TransactionRepository {
         return Single.defer {
             Single.just(accountBalances[accountId] ?: emptyList<Transaction>())
         }
+    }
+
+    override fun findByAccountAndId(accountId: UUID, transactionId: UUID): Maybe<Transaction> {
+        return findByAccountId(accountId)
+                .flatMapMaybe { list -> list.find { it.id == transactionId }?.let { Maybe.just(it) } ?: Maybe.empty() }
     }
 
     private fun persistDeposit(deposit: Deposit): Single<Transaction> {

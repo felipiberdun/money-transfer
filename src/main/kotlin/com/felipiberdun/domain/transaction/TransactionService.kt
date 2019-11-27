@@ -2,6 +2,7 @@ package com.felipiberdun.domain.transaction
 
 import com.felipiberdun.domain.accounts.Account
 import com.felipiberdun.domain.accounts.AccountService
+import io.reactivex.Maybe
 import io.reactivex.Single
 import io.reactivex.functions.BiFunction
 import java.time.LocalDateTime
@@ -12,19 +13,11 @@ import javax.inject.Singleton
 class TransactionService(private val transactionRepository: TransactionRepository,
                          private val accountService: AccountService) {
 
-    fun processTransaction(createTransactionCommand: CreateTransactionCommand): Single<Transaction> {
-        if (createTransactionCommand.amount <= 0) {
+    fun createDeposit(createDepositCommand: CreateDepositCommand): Single<Deposit> {
+        if (createDepositCommand.amount < 0) {
             return Single.error(InvalidTransactionAmmountException)
         }
 
-        return when (createTransactionCommand) {
-            is CreateDepositCommand -> processDeposit(createTransactionCommand)
-            is CreateTransferCommand -> processTransfer(createTransactionCommand)
-            is CreateWithdrawCommand -> processWithdraw(createTransactionCommand)
-        }
-    }
-
-    private fun processDeposit(createDepositCommand: CreateDepositCommand): Single<Transaction> {
         return accountService.findById(createDepositCommand.to)
                 .switchIfEmpty(Single.error(AccountNotFoundException(createDepositCommand.to)))
                 .flatMap {
@@ -34,10 +27,15 @@ class TransactionService(private val transactionRepository: TransactionRepositor
                             amount = createDepositCommand.amount,
                             date = LocalDateTime.now())
                     transactionRepository.createTransaction(deposit)
+                            .cast(Deposit::class.java)
                 }
     }
 
-    private fun processTransfer(createTransferCommand: CreateTransferCommand): Single<Transaction> {
+    fun createTransfer(createTransferCommand: CreateTransferCommand): Single<Transaction> {
+        if (createTransferCommand.amount < 0) {
+            return Single.error(InvalidTransactionAmmountException)
+        }
+
         val accountFrom = accountService
                 .findById(createTransferCommand.from)
                 .switchIfEmpty(Single.error(AccountNotFoundException(createTransferCommand.from)))
@@ -64,7 +62,11 @@ class TransactionService(private val transactionRepository: TransactionRepositor
                 .flatMap { it }
     }
 
-    private fun processWithdraw(createWithdrawCommand: CreateWithdrawCommand): Single<Transaction> {
+    fun createWithdraw(createWithdrawCommand: CreateWithdrawCommand): Single<Transaction> {
+        if (createWithdrawCommand.amount < 0) {
+            return Single.error(InvalidTransactionAmmountException)
+        }
+
         return accountService.findById(createWithdrawCommand.from)
                 .switchIfEmpty(Single.error(AccountNotFoundException(createWithdrawCommand.from)))
                 .flatMap {
@@ -87,6 +89,13 @@ class TransactionService(private val transactionRepository: TransactionRepositor
                 .switchIfEmpty(Single.error(AccountNotFoundException(accountId)))
                 .flatMap { transactionRepository.findByAccountId(it.id) }
                 .map { it.map { transaction -> transaction.toQuery() } }
+    }
+
+    fun findByAccountAndId(accountId: UUID, transactionId: UUID): Maybe<TransactionQuery> {
+        return accountService.findById(accountId)
+                .switchIfEmpty(Single.error(AccountNotFoundException(accountId)))
+                .flatMapMaybe { transactionRepository.findByAccountAndId(it.id, transactionId) }
+                .map { it.toQuery() }
     }
 
 }

@@ -15,26 +15,26 @@ enum class TransactionType {
     WITHDRAW
 }
 
-sealed class Transaction(val type: TransactionType)
+sealed class Transaction(open val id: UUID, val type: TransactionType)
 
 data class Deposit(
-        val id: UUID,
+        override val id: UUID,
         val to: Account,
         val amount: Float,
         val date: LocalDateTime
-) : Transaction(TransactionType.DEPOSIT)
+) : Transaction(id, TransactionType.DEPOSIT)
 
 data class Transfer(
-        val id: UUID,
+        override val id: UUID,
         val from: Account,
         val to: Account,
         val amount: Float,
         val date: LocalDateTime
-) : Transaction(TransactionType.TRANSFER)
+) : Transaction(id, TransactionType.TRANSFER)
 
 data class Withdraw(
-        val id: UUID,
+        override val id: UUID,
         val from: Account,
         val amount: Float,
         val date: LocalDateTime
-) : Transaction(TransactionType.WITHDRAW)
+) : Transaction(id, TransactionType.WITHDRAW)
