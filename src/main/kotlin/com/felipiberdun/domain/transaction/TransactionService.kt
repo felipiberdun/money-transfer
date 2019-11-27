@@ -5,6 +5,7 @@ import com.felipiberdun.domain.accounts.AccountService
 import io.reactivex.Maybe
 import io.reactivex.Single
 import io.reactivex.functions.BiFunction
+import io.reactivex.functions.Function3
 import java.time.LocalDateTime
 import java.util.*
 import javax.inject.Singleton
@@ -38,9 +39,11 @@ class TransactionService(private val transactionRepository: TransactionRepositor
         val accountFrom = accountService.findById(createTransferCommand.from)
         val accountTo = accountService.findById(createTransferCommand.to)
 
-        return Single.zip(accountFrom, accountTo,
-                BiFunction<Account, Account, Single<Transaction>> { from, to ->
-                    if (createTransferCommand.amount >= 0) {
+        return Single.zip(accountFrom,
+                accountTo,
+                getCurrentBalance(createTransferCommand.from),
+                Function3<Account, Account, Float, Single<Transaction>> { from, to, balance ->
+                    if (createTransferCommand.amount >= balance) {
                         throw InsufficientAmountException(createTransferCommand.from, createTransferCommand.amount)
                     }
 
@@ -62,11 +65,15 @@ class TransactionService(private val transactionRepository: TransactionRepositor
         }
 
         return accountService.findById(createWithdrawCommand.from)
-                .flatMap {
-                    if (createWithdrawCommand.amount >= 0) {
-                        throw InsufficientAmountException(createWithdrawCommand.from, createWithdrawCommand.amount)
-                    }
+                .zipWith(getCurrentBalance(createWithdrawCommand.from),
+                        BiFunction<Account, Float, Account> { account, balance ->
+                            if (createWithdrawCommand.amount >= balance) {
+                                throw InsufficientAmountException(createWithdrawCommand.from, createWithdrawCommand.amount)
+                            }
 
+                            account
+                        })
+                .flatMap {
                     val withdraw = Withdraw(
                             id = UUID.randomUUID(),
                             from = it,
@@ -74,6 +81,20 @@ class TransactionService(private val transactionRepository: TransactionRepositor
                             date = LocalDateTime.now())
 
                     transactionRepository.createTransaction(withdraw)
+                }
+    }
+
+    private fun getCurrentBalance(accountId: UUID): Single<Float> {
+        return transactionRepository.findByAccountId(accountId)
+                .map { list ->
+                    list.map {
+                        when (it) {
+                            is Deposit -> it.amount
+                            is Transfer -> it.amount * (if (it.from.id == accountId) -1 else 1)
+                            is Withdraw -> it.amount * -1
+                        }
+                    }
+                            .reduce(Float::plus)
                 }
     }
 
