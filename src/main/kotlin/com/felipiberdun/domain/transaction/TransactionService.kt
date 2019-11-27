@@ -82,4 +82,11 @@ class TransactionService(private val transactionRepository: TransactionRepositor
                 }
     }
 
+    fun findByAccountId(accountId: UUID): Single<List<TransactionQuery>> {
+        return accountService.findById(accountId)
+                .switchIfEmpty(Single.error(AccountNotFoundException(accountId)))
+                .flatMap { transactionRepository.findByAccountId(it.id) }
+                .map { it.map { transaction -> transaction.toQuery() } }
+    }
+
 }
