@@ -1,6 +1,7 @@
 package com.felipiberdun.application.account
 
 import com.felipiberdun.domain.accounts.*
+import com.felipiberdun.domain.transaction.AccountNotFoundException
 import io.micronaut.http.HttpResponse.*
 import io.micronaut.http.HttpResponseFactory
 import io.micronaut.http.HttpStatus.CONFLICT
@@ -23,7 +24,12 @@ class AccountController(private val accountService: AccountService,
     fun findById(@PathVariable accountId: UUID): Single<MutableHttpResponse<AccountQuery>> {
         return accountService.findById(accountId)
                 .map { ok(it.toQuery()) }
-                .switchIfEmpty(Single.just(notFound()))
+                .onErrorResumeNext { throwable ->
+                    when (throwable) {
+                        is AccountNotFoundException -> Single.just(notFound())
+                        else -> Single.error(throwable)
+                    }
+                }
     }
 
     @Post(consumes = [MediaType.APPLICATION_JSON])
@@ -32,10 +38,10 @@ class AccountController(private val accountService: AccountService,
             accountService.createAccount(it)
                     .map { acc -> created<Void>(buildAccountCreatedUri(acc.id)) }
                     .onErrorResumeNext { throwable ->
-                        if (throwable is AccountAlreadyExistsException)
-                            Single.just(HttpResponseFactory.INSTANCE.status<Void>(CONFLICT))
-                        else
-                            Single.error(throwable)
+                        when (throwable) {
+                            is AccountAlreadyExistsException -> Single.just(HttpResponseFactory.INSTANCE.status<Void>(CONFLICT))
+                            else -> Single.error(throwable)
+                        }
                     }
         }
     }

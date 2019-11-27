@@ -19,14 +19,14 @@ class TransactionController(private val transactionService: TransactionService,
     @Get("/transactions", produces = [APPLICATION_JSON])
     fun findTransactionsById(@PathVariable accountId: UUID): Single<HttpResponse<List<TransactionQuery>>> {
         return transactionService.findByAccountId(accountId)
-                .map { ok(it) }
+                .map { ok(it.map { transaction -> transaction.toQuery() }) }
     }
 
     @Get("/transactions/{transactionId}", produces = [APPLICATION_JSON])
     fun findTransactionById(@PathVariable accountId: UUID,
                             @PathVariable transactionId: UUID): Single<MutableHttpResponse<TransactionQuery>> {
         return transactionService.findByAccountAndId(accountId, transactionId)
-                .map { ok(it) }
+                .map { ok(it.toQuery()) }
                 .switchIfEmpty(Single.just(notFound()))
     }
 

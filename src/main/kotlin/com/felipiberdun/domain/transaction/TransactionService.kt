@@ -19,7 +19,6 @@ class TransactionService(private val transactionRepository: TransactionRepositor
         }
 
         return accountService.findById(createDepositCommand.to)
-                .switchIfEmpty(Single.error(AccountNotFoundException(createDepositCommand.to)))
                 .flatMap {
                     val deposit = Deposit(
                             id = UUID.randomUUID(),
@@ -36,13 +35,8 @@ class TransactionService(private val transactionRepository: TransactionRepositor
             return Single.error(InvalidTransactionAmmountException)
         }
 
-        val accountFrom = accountService
-                .findById(createTransferCommand.from)
-                .switchIfEmpty(Single.error(AccountNotFoundException(createTransferCommand.from)))
-
-        val accountTo = accountService
-                .findById(createTransferCommand.to)
-                .switchIfEmpty(Single.error(AccountNotFoundException(createTransferCommand.to)))
+        val accountFrom = accountService.findById(createTransferCommand.from)
+        val accountTo = accountService.findById(createTransferCommand.to)
 
         return Single.zip(accountFrom, accountTo,
                 BiFunction<Account, Account, Single<Transaction>> { from, to ->
@@ -68,7 +62,6 @@ class TransactionService(private val transactionRepository: TransactionRepositor
         }
 
         return accountService.findById(createWithdrawCommand.from)
-                .switchIfEmpty(Single.error(AccountNotFoundException(createWithdrawCommand.from)))
                 .flatMap {
                     if (createWithdrawCommand.amount >= 0) {
                         throw InsufficientAmountException(createWithdrawCommand.from, createWithdrawCommand.amount)
@@ -84,18 +77,15 @@ class TransactionService(private val transactionRepository: TransactionRepositor
                 }
     }
 
-    fun findByAccountId(accountId: UUID): Single<List<TransactionQuery>> {
+    fun findByAccountId(accountId: UUID): Single<List<Transaction>> {
         return accountService.findById(accountId)
-                .switchIfEmpty(Single.error(AccountNotFoundException(accountId)))
                 .flatMap { transactionRepository.findByAccountId(it.id) }
-                .map { it.map { transaction -> transaction.toQuery() } }
+                .map { it.map { transaction -> transaction } }
     }
 
-    fun findByAccountAndId(accountId: UUID, transactionId: UUID): Maybe<TransactionQuery> {
+    fun findByAccountAndId(accountId: UUID, transactionId: UUID): Maybe<Transaction> {
         return accountService.findById(accountId)
-                .switchIfEmpty(Single.error(AccountNotFoundException(accountId)))
                 .flatMapMaybe { transactionRepository.findByAccountAndId(it.id, transactionId) }
-                .map { it.toQuery() }
     }
 
 }
