@@ -6,10 +6,12 @@ import io.reactivex.Maybe
 import io.reactivex.Single
 import java.util.*
 import java.util.concurrent.ConcurrentMap
+import javax.inject.Inject
+import javax.inject.Named
 import javax.inject.Singleton
 
 @Singleton
-class AccountInMemoryRepository(private val accounts: ConcurrentMap<UUID, Account>) : AccountRepository {
+class AccountInMemoryRepository(@Inject @Named("accountDataSource") private val accounts: ConcurrentMap<UUID, Account>) : AccountRepository {
 
     override fun findById(id: UUID): Maybe<Account> {
         return accounts[id]?.let { Maybe.just(it) } ?: Maybe.empty<Account>()

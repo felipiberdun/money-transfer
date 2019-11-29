@@ -6,10 +6,12 @@ import io.reactivex.Single
 import java.util.*
 import java.util.concurrent.ConcurrentMap
 import java.util.concurrent.CopyOnWriteArrayList
+import javax.inject.Inject
+import javax.inject.Named
 import javax.inject.Singleton
 
 @Singleton
-class TransactionInMemoryRepository(private val accountBalances: ConcurrentMap<UUID, CopyOnWriteArrayList<Transaction>>)
+class TransactionInMemoryRepository(@Inject @Named("TransactionDataSource") private val accountBalances: ConcurrentMap<UUID, CopyOnWriteArrayList<Transaction>>)
     : TransactionRepository {
 
     override fun createTransaction(transaction: Transaction): Single<Transaction> {
