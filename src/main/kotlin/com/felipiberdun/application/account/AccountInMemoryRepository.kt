@@ -6,17 +6,14 @@ import com.felipiberdun.domain.accounts.AccountRepository
 import io.reactivex.Maybe
 import io.reactivex.Single
 import java.util.*
-import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 import javax.inject.Singleton
 
 @Singleton
-class AccountInMemoryRepository : AccountRepository {
-
-    private val accounts: ConcurrentMap<UUID, Account> = ConcurrentHashMap()
+class AccountInMemoryRepository(private val accounts: ConcurrentMap<UUID, Account>) : AccountRepository {
 
     override fun findById(id: UUID): Maybe<Account> {
-        return Maybe.defer { accounts[id]?.let { Maybe.just(it) } ?: Maybe.empty<Account>() }
+        return accounts[id]?.let { Maybe.just(it) } ?: Maybe.empty<Account>()
     }
 
     override fun createAccount(account: Account): Single<Account> {

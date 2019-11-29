@@ -1,4 +1,4 @@
-package com.felipiberdun.transaction
+package com.felipiberdun.application.transaction
 
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
