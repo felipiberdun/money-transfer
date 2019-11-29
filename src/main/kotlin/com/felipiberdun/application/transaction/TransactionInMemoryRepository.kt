@@ -58,13 +58,11 @@ class TransactionInMemoryRepository(@Inject @Named("TransactionDataSource") priv
     }
 
     private fun addTransactionToAccount(accountId: UUID, transaction: Transaction) {
-        val compute = accountBalances.compute(accountId) { _, currentList ->
+        accountBalances.compute(accountId) { _, currentList ->
             val list = currentList ?: CopyOnWriteArrayList()
             list.add(transaction)
             list
         }
-
-        println(compute.toString())
     }
 
 

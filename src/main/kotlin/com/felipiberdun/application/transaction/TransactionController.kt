@@ -1,6 +1,7 @@
 package com.felipiberdun.application.transaction
 
 import com.felipiberdun.domain.transaction.*
+import com.felipiberdun.domain.transaction.TransactionQuery.Companion.fromTransaction
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.HttpResponse.*
 import io.micronaut.http.MediaType.APPLICATION_JSON
@@ -19,14 +20,14 @@ class TransactionController(private val transactionService: TransactionService,
     @Get("/transactions", produces = [APPLICATION_JSON])
     fun findTransactionsById(@PathVariable accountId: UUID): Single<HttpResponse<List<TransactionQuery>>> {
         return transactionService.findByAccountId(accountId)
-                .map { ok(it.map { transaction -> transaction.toQuery() }) }
+                .map { ok(it.map { transaction -> fromTransaction(transaction) }) }
     }
 
     @Get("/transactions/{transactionId}", produces = [APPLICATION_JSON])
     fun findTransactionById(@PathVariable accountId: UUID,
                             @PathVariable transactionId: UUID): Single<MutableHttpResponse<TransactionQuery>> {
         return transactionService.findByAccountAndId(accountId, transactionId)
-                .map { ok(it.toQuery()) }
+                .map { ok(fromTransaction(it)) }
                 .switchIfEmpty(Single.just(notFound()))
     }
 

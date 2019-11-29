@@ -3,7 +3,17 @@ package com.felipiberdun.domain.transaction
 import java.time.LocalDateTime
 import java.util.*
 
-sealed class TransactionQuery(val type: TransactionType)
+sealed class TransactionQuery(val type: TransactionType) {
+    companion object {
+        fun fromTransaction(transaction: Transaction): TransactionQuery {
+            return when (transaction) {
+                is Deposit -> transaction.toQuery()
+                is Transfer -> transaction.toQuery()
+                is Withdraw -> transaction.toQuery()
+            }
+        }
+    }
+}
 
 data class DepositQuery(
         val id: UUID,
@@ -26,11 +36,6 @@ data class WithdrawQuery(
         val amount: Float,
         val date: LocalDateTime
 ) : TransactionQuery(TransactionType.WITHDRAW)
-
-
-fun Transaction.toQuery(): TransactionQuery {
-    return this.toQuery()
-}
 
 fun Deposit.toQuery() = DepositQuery(
         id = this.id,
