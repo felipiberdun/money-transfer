@@ -1,6 +1,7 @@
 package com.felipiberdun.domain.accounts
 
 import com.felipiberdun.domain.transaction.AccountNotFoundException
+import io.reactivex.Maybe
 import io.reactivex.Single
 import java.time.LocalDateTime
 import java.util.*
@@ -16,7 +17,10 @@ class AccountService(private val repository: AccountRepository) {
 
     fun createAccount(createAccountCommand: CreateAccountCommand): Single<Account> {
         val account = Account(UUID.randomUUID(), createAccountCommand.owner, LocalDateTime.now())
-        return repository.createAccount(account)
+
+        return repository.findById(account.id)
+                .flatMap { Maybe.error<Account>(AccountAlreadyExistsException) }
+                .switchIfEmpty(repository.createAccount(account))
     }
 
 }

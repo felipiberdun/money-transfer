@@ -1,7 +1,6 @@
 package com.felipiberdun.application.account
 
 import com.felipiberdun.domain.accounts.Account
-import com.felipiberdun.domain.accounts.AccountAlreadyExistsException
 import com.felipiberdun.domain.accounts.AccountRepository
 import io.reactivex.Maybe
 import io.reactivex.Single
@@ -17,9 +16,7 @@ class AccountInMemoryRepository(private val accounts: ConcurrentMap<UUID, Accoun
     }
 
     override fun createAccount(account: Account): Single<Account> {
-        return findById(account.id)
-                .flatMap<Account> { Maybe.error(AccountAlreadyExistsException) }
-                .switchIfEmpty(persist(account))
+        return persist(account)
     }
 
     private fun persist(account: Account): Single<Account> {
