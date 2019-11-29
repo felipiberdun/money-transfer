@@ -15,7 +15,7 @@ class TransactionService(private val transactionRepository: TransactionRepositor
                          private val accountService: AccountService) {
 
     fun createDeposit(createDepositCommand: CreateDepositCommand): Single<Deposit> {
-        if (createDepositCommand.amount < 0) {
+        if (createDepositCommand.amount <= 0) {
             return Single.error(InvalidTransactionAmmountException)
         }
 
@@ -32,7 +32,7 @@ class TransactionService(private val transactionRepository: TransactionRepositor
     }
 
     fun createTransfer(createTransferCommand: CreateTransferCommand): Single<Transaction> {
-        if (createTransferCommand.amount < 0) {
+        if (createTransferCommand.amount <= 0) {
             return Single.error(InvalidTransactionAmmountException)
         }
 
@@ -43,7 +43,7 @@ class TransactionService(private val transactionRepository: TransactionRepositor
                 accountTo,
                 getCurrentBalance(createTransferCommand.from),
                 Function3<Account, Account, Float, Single<Transaction>> { from, to, balance ->
-                    if (createTransferCommand.amount >= balance) {
+                    if (createTransferCommand.amount > balance) {
                         throw InsufficientAmountException(createTransferCommand.from, createTransferCommand.amount)
                     }
 
@@ -60,14 +60,14 @@ class TransactionService(private val transactionRepository: TransactionRepositor
     }
 
     fun createWithdraw(createWithdrawCommand: CreateWithdrawCommand): Single<Transaction> {
-        if (createWithdrawCommand.amount < 0) {
+        if (createWithdrawCommand.amount <= 0) {
             return Single.error(InvalidTransactionAmmountException)
         }
 
         return accountService.findById(createWithdrawCommand.from)
                 .zipWith(getCurrentBalance(createWithdrawCommand.from),
                         BiFunction<Account, Float, Account> { account, balance ->
-                            if (createWithdrawCommand.amount >= balance) {
+                            if (createWithdrawCommand.amount > balance) {
                                 throw InsufficientAmountException(createWithdrawCommand.from, createWithdrawCommand.amount)
                             }
 
@@ -84,7 +84,7 @@ class TransactionService(private val transactionRepository: TransactionRepositor
                 }
     }
 
-    private fun getCurrentBalance(accountId: UUID): Single<Float> {
+    fun getCurrentBalance(accountId: UUID): Single<Float> {
         return transactionRepository.findByAccountId(accountId)
                 .map { list ->
                     list.map {
@@ -94,14 +94,13 @@ class TransactionService(private val transactionRepository: TransactionRepositor
                             is Withdraw -> it.amount * -1
                         }
                     }
-                            .reduce(Float::plus)
+                            .fold(0f) { a, b -> a + b }
                 }
     }
 
     fun findByAccountId(accountId: UUID): Single<List<Transaction>> {
         return accountService.findById(accountId)
                 .flatMap { transactionRepository.findByAccountId(it.id) }
-                .map { it.map { transaction -> transaction } }
     }
 
     fun findByAccountAndId(accountId: UUID, transactionId: UUID): Maybe<Transaction> {
