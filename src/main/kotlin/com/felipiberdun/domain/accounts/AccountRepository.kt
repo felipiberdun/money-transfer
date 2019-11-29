@@ -10,4 +10,6 @@ interface AccountRepository {
 
     fun createAccount(account: Account): Single<Account>
 
+    fun findAll(): Single<List<Account>>
+
 }

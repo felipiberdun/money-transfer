@@ -10,6 +10,10 @@ import javax.inject.Singleton
 @Singleton
 class AccountService(private val repository: AccountRepository) {
 
+    fun findAll(): Single<List<Account>> {
+        return repository.findAll()
+    }
+
     fun findById(id: UUID): Single<Account> {
         return repository.findById(id)
                 .switchIfEmpty(Single.error(AccountNotFoundException(id)))

@@ -43,6 +43,7 @@ dependencies {
     testImplementation "io.kotlintest:kotlintest-runner-junit5:3.3.2"
     testImplementation "org.spekframework.spek2:spek-dsl-jvm:$spekVersion"
     testImplementation "io.github.classgraph:classgraph:4.8.47"
+    testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlinVersion"
     testRuntimeOnly "org.spekframework.spek2:spek-runner-junit5:$spekVersion"
 }
 

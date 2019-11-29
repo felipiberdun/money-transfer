@@ -31,6 +31,12 @@ class TransactionController(private val transactionService: TransactionService,
                 .switchIfEmpty(Single.just(notFound()))
     }
 
+    @Get("/balance", produces = [APPLICATION_JSON])
+    fun findCurrentBalance(@PathVariable accountId: UUID): Single<MutableHttpResponse<Float>> {
+        return transactionService.getCurrentBalance(accountId)
+                .map { ok(it) }
+    }
+
     @Post("/deposits", consumes = [APPLICATION_JSON])
     fun createDeposit(@PathVariable accountId: UUID,
                       @Body createDepositPayload: CreateDepositPayload): Single<HttpResponse<Void>> {

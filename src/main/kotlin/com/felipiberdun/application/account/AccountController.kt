@@ -2,6 +2,8 @@ package com.felipiberdun.application.account
 
 import com.felipiberdun.domain.accounts.*
 import com.felipiberdun.domain.transaction.AccountNotFoundException
+import com.felipiberdun.domain.transaction.TransactionQuery
+import io.micronaut.http.HttpResponse
 import io.micronaut.http.HttpResponse.*
 import io.micronaut.http.HttpResponseFactory
 import io.micronaut.http.HttpStatus.CONFLICT
@@ -19,6 +21,12 @@ import javax.inject.Singleton
 @Controller("/accounts")
 class AccountController(private val accountService: AccountService,
                         private val embeddedServer: EmbeddedServer) {
+
+    @Get(value = "/", produces = [MediaType.APPLICATION_JSON])
+    fun findAll(): Single<MutableHttpResponse<List<AccountQuery>>> {
+        return accountService.findAll()
+                .map { ok(it.map { accs -> accs.toQuery() }) }
+    }
 
     @Get(value = "/{accountId}", produces = [MediaType.APPLICATION_JSON])
     fun findById(@PathVariable accountId: UUID): Single<MutableHttpResponse<AccountQuery>> {
