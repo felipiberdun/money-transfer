@@ -25,6 +25,7 @@ object AccountRepositoryTest : Spek({
                             .assertNoErrors()
                             .assertValue(account)
                             .assertComplete()
+                            .dispose()
                 }
 
                 it("with other id returns nothing") {
@@ -33,6 +34,7 @@ object AccountRepositoryTest : Spek({
                             .assertNoErrors()
                             .assertNoValues()
                             .assertComplete()
+                            .dispose()
                 }
             }
 
@@ -42,6 +44,7 @@ object AccountRepositoryTest : Spek({
                             .test()
                             .assertNoValues()
                             .assertError(AccountAlreadyExistsException::class.java)
+                            .dispose()
                 }
 
                 it("Creating account with other id executes successfully") {
@@ -52,6 +55,7 @@ object AccountRepositoryTest : Spek({
                             .assertNoErrors()
                             .assertValue(newAccount)
                             .assertComplete()
+                            .dispose()
                 }
             }
         }
