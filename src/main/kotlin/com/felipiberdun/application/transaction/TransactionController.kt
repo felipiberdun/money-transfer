@@ -39,7 +39,7 @@ class TransactionController(private val transactionService: TransactionService,
 
     @Post("/deposits", consumes = [APPLICATION_JSON])
     fun createDeposit(@PathVariable accountId: UUID,
-                      @Body createDepositPayload: CreateDepositPayload): Single<HttpResponse<Void>> {
+                      @Body createDepositPayload: CreateDepositPayload): Single<MutableHttpResponse<Void>> {
         val createDepositCommand = CreateDepositCommand(
                 to = accountId,
                 amount = createDepositPayload.amount
@@ -47,11 +47,12 @@ class TransactionController(private val transactionService: TransactionService,
 
         return transactionService.createDeposit(createDepositCommand)
                 .map { deposit -> created<Void>(buildResourceLocationUri(accountId, deposit.id)) }
+                .onErrorResumeNext { handleErros(it) }
     }
 
     @Post("/transfers", consumes = [APPLICATION_JSON])
     fun createTransfer(@PathVariable accountId: UUID,
-                       @Body createTransferPayload: CreateTransferPayload): Single<HttpResponse<Void>> {
+                       @Body createTransferPayload: CreateTransferPayload): Single<MutableHttpResponse<Void>> {
         val createTransferCommand = CreateTransferCommand(
                 from = accountId,
                 to = createTransferPayload.to,
@@ -60,11 +61,12 @@ class TransactionController(private val transactionService: TransactionService,
 
         return transactionService.createTransfer(createTransferCommand)
                 .map { transfer -> created<Void>(buildResourceLocationUri(accountId, transfer.id)) }
+                .onErrorResumeNext { handleErros(it) }
     }
 
     @Post("/withdraws", consumes = [APPLICATION_JSON])
     fun createWithdraw(@PathVariable accountId: UUID,
-                       @Body createWithdrawPayload: CreateWithdrawPayload): Single<HttpResponse<Void>> {
+                       @Body createWithdrawPayload: CreateWithdrawPayload): Single<MutableHttpResponse<Void>> {
         val createWithdrawCommand = CreateWithdrawCommand(
                 from = accountId,
                 amount = createWithdrawPayload.amount
@@ -72,6 +74,15 @@ class TransactionController(private val transactionService: TransactionService,
 
         return transactionService.createWithdraw(createWithdrawCommand)
                 .map { withdraw -> created<Void>(buildResourceLocationUri(accountId, withdraw.id)) }
+                .onErrorResumeNext { handleErros(it) }
+    }
+
+    private fun <T> handleErros(throwable: Throwable): Single<MutableHttpResponse<T>> {
+        return when (throwable) {
+            is AccountNotFoundException -> Single.just(notFound())
+            is InsufficientAmountException -> Single.just(badRequest())
+            else -> Single.error(throwable)
+        }
     }
 
     private fun buildResourceLocationUri(accountId: UUID, transactionId: UUID): URI {

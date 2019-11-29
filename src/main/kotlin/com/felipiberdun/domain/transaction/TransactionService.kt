@@ -44,17 +44,17 @@ class TransactionService(private val transactionRepository: TransactionRepositor
                 getCurrentBalance(createTransferCommand.from),
                 Function3<Account, Account, Float, Single<Transaction>> { from, to, balance ->
                     if (createTransferCommand.amount > balance) {
-                        throw InsufficientAmountException(createTransferCommand.from, createTransferCommand.amount)
+                        Single.error(InsufficientAmountException(createTransferCommand.from, createTransferCommand.amount))
+                    } else {
+                        val transfer = Transfer(
+                                id = UUID.randomUUID(),
+                                from = from,
+                                to = to,
+                                amount = createTransferCommand.amount,
+                                date = LocalDateTime.now())
+
+                        transactionRepository.createTransaction(transfer)
                     }
-
-                    val transfer = Transfer(
-                            id = UUID.randomUUID(),
-                            from = from,
-                            to = to,
-                            amount = createTransferCommand.amount,
-                            date = LocalDateTime.now())
-
-                    transactionRepository.createTransaction(transfer)
                 })
                 .flatMap { it }
     }
