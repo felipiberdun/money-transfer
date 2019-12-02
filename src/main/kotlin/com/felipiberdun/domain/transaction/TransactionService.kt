@@ -19,11 +19,11 @@ class TransactionService(private val transactionRepository: TransactionRepositor
             return Single.error(InvalidTransactionAmmountException)
         }
 
-        return accountService.findById(createDepositCommand.to)
+        return accountService.findById(createDepositCommand.destination)
                 .flatMap {
                     val deposit = Deposit(
                             id = UUID.randomUUID(),
-                            to = it,
+                            destination = it,
                             amount = createDepositCommand.amount,
                             date = LocalDateTime.now())
                     transactionRepository.createTransaction(deposit)
@@ -36,20 +36,20 @@ class TransactionService(private val transactionRepository: TransactionRepositor
             return Single.error(InvalidTransactionAmmountException)
         }
 
-        val accountFrom = accountService.findById(createTransferCommand.from)
-        val accountTo = accountService.findById(createTransferCommand.to)
+        val originAccount = accountService.findById(createTransferCommand.origin)
+        val destinationAccount = accountService.findById(createTransferCommand.destination)
 
-        return Single.zip(accountFrom,
-                accountTo,
-                getCurrentBalance(createTransferCommand.from),
+        return Single.zip(originAccount,
+                destinationAccount,
+                getCurrentBalance(createTransferCommand.origin),
                 Function3<Account, Account, Float, Single<Transaction>> { from, to, balance ->
                     if (createTransferCommand.amount > balance) {
-                        Single.error(InsufficientAmountException(createTransferCommand.from, createTransferCommand.amount))
+                        Single.error(InsufficientAmountException(createTransferCommand.origin, createTransferCommand.amount))
                     } else {
                         val transfer = Transfer(
                                 id = UUID.randomUUID(),
-                                from = from,
-                                to = to,
+                                origin = from,
+                                destination = to,
                                 amount = createTransferCommand.amount,
                                 date = LocalDateTime.now())
 
@@ -64,11 +64,11 @@ class TransactionService(private val transactionRepository: TransactionRepositor
             return Single.error(InvalidTransactionAmmountException)
         }
 
-        return accountService.findById(createWithdrawCommand.from)
-                .zipWith(getCurrentBalance(createWithdrawCommand.from),
+        return accountService.findById(createWithdrawCommand.origin)
+                .zipWith(getCurrentBalance(createWithdrawCommand.origin),
                         BiFunction<Account, Float, Account> { account, balance ->
                             if (createWithdrawCommand.amount > balance) {
-                                throw InsufficientAmountException(createWithdrawCommand.from, createWithdrawCommand.amount)
+                                throw InsufficientAmountException(createWithdrawCommand.origin, createWithdrawCommand.amount)
                             }
 
                             account
@@ -76,7 +76,7 @@ class TransactionService(private val transactionRepository: TransactionRepositor
                 .flatMap {
                     val withdraw = Withdraw(
                             id = UUID.randomUUID(),
-                            from = it,
+                            origin = it,
                             amount = createWithdrawCommand.amount,
                             date = LocalDateTime.now())
 
@@ -90,7 +90,7 @@ class TransactionService(private val transactionRepository: TransactionRepositor
                     list.map {
                         when (it) {
                             is Deposit -> it.amount
-                            is Transfer -> it.amount * (if (it.from.id == accountId) -1 else 1)
+                            is Transfer -> it.amount * (if (it.origin.id == accountId) -1 else 1)
                             is Withdraw -> it.amount * -1
                         }
                     }

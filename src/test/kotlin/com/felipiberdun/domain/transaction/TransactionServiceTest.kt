@@ -25,7 +25,7 @@ object TransactionServiceTest : Spek({
         describe("Searching") {
             val accountId = UUID.randomUUID()
             val account = Account(id = accountId, owner = "Felipi", creationData = LocalDateTime.now())
-            val deposit = Deposit(id = UUID.randomUUID(), to = account, amount = 10f, date = LocalDateTime.now())
+            val deposit = Deposit(id = UUID.randomUUID(), destination = account, amount = 10f, date = LocalDateTime.now())
 
             describe("All transactions") {
                 it("if account exists returns all transactions") {
@@ -109,12 +109,12 @@ object TransactionServiceTest : Spek({
             describe("Deposit") {
                 val accountId = UUID.randomUUID()
                 val account = Account(id = accountId, owner = "Felipi", creationData = LocalDateTime.now())
-                val deposit = Deposit(id = UUID.randomUUID(), to = account, amount = 10f, date = LocalDateTime.now())
+                val deposit = Deposit(id = UUID.randomUUID(), destination = account, amount = 10f, date = LocalDateTime.now())
 
                 it("if account doesn't exist returns AccountNotFoundException error") {
                     every { accountService.findById(any()) } returns Single.error(AccountNotFoundException(accountId))
 
-                    val createDepositCommand = CreateDepositCommand(to = accountId, amount = deposit.amount)
+                    val createDepositCommand = CreateDepositCommand(destination = accountId, amount = deposit.amount)
                     transactionService.createDeposit(createDepositCommand)
                             .test()
                             .assertNoValues()
@@ -130,11 +130,11 @@ object TransactionServiceTest : Spek({
                     every { accountService.findById(accountId) } returns Single.just(account)
                     every { repository.createTransaction(any<Deposit>()) } returns Single.just(deposit)
 
-                    val createDepositCommand = CreateDepositCommand(to = accountId, amount = deposit.amount)
+                    val createDepositCommand = CreateDepositCommand(destination = accountId, amount = deposit.amount)
                     transactionService.createDeposit(createDepositCommand)
                             .test()
                             .assertNoErrors()
-                            .assertValue { dep -> dep.to.id == accountId && dep.amount == deposit.amount }
+                            .assertValue { dep -> dep.destination.id == accountId && dep.amount == deposit.amount }
                             .assertComplete()
                             .dispose()
 
@@ -145,7 +145,7 @@ object TransactionServiceTest : Spek({
                 listOf(-23f, -1f, 0f)
                         .forEach { value ->
                             it("if amount is $value returns InvalidTransactionAmmountException error") {
-                                val createDepositCommand = CreateDepositCommand(to = accountId, amount = value)
+                                val createDepositCommand = CreateDepositCommand(destination = accountId, amount = value)
 
                                 transactionService.createDeposit(createDepositCommand)
                                         .test()
@@ -165,7 +165,7 @@ object TransactionServiceTest : Spek({
                     every { accountService.findById(not(destinationAccount.id)) } returns Single.error(AccountNotFoundException(originAccount.id))
                     every { repository.findByAccountId(originAccount.id) } returns Single.just(emptyList())
 
-                    val createTransferCommand = CreateTransferCommand(from = originAccount.id, to = destinationAccount.id, amount = 10f)
+                    val createTransferCommand = CreateTransferCommand(origin = originAccount.id, destination = destinationAccount.id, amount = 10f)
                     transactionService.createTransfer(createTransferCommand)
                             .test()
                             .assertNoValues()
@@ -183,7 +183,7 @@ object TransactionServiceTest : Spek({
                     every { accountService.findById(not(originAccount.id)) } returns Single.error(AccountNotFoundException(destinationAccount.id))
                     every { repository.findByAccountId(originAccount.id) } returns Single.just(emptyList())
 
-                    val createTransferCommand = CreateTransferCommand(from = originAccount.id, to = destinationAccount.id, amount = 10f)
+                    val createTransferCommand = CreateTransferCommand(origin = originAccount.id, destination = destinationAccount.id, amount = 10f)
                     transactionService.createTransfer(createTransferCommand)
                             .test()
                             .assertNoValues()
@@ -196,8 +196,8 @@ object TransactionServiceTest : Spek({
                     verify(exactly = 0) { repository.createTransaction(any()) }
                 }
 
-                val deposit9dols = Deposit(id = UUID.randomUUID(), to = originAccount, amount = 9f, date = LocalDateTime.now())
-                val withdraw3dols = Withdraw(id = UUID.randomUUID(), from = originAccount, amount = 3f, date = LocalDateTime.now())
+                val deposit9dols = Deposit(id = UUID.randomUUID(), destination = originAccount, amount = 9f, date = LocalDateTime.now())
+                val withdraw3dols = Withdraw(id = UUID.randomUUID(), origin = originAccount, amount = 3f, date = LocalDateTime.now())
 
                 mapOf(
                         listOf(deposit9dols) to 10f,
@@ -211,7 +211,7 @@ object TransactionServiceTest : Spek({
                                 every { accountService.findById(destinationAccount.id) } returns Single.just(destinationAccount)
                                 every { repository.findByAccountId(originAccount.id) } returns Single.just(transactions)
 
-                                val createTransferCommand = CreateTransferCommand(from = originAccount.id, to = destinationAccount.id, amount = transferAmount)
+                                val createTransferCommand = CreateTransferCommand(origin = originAccount.id, destination = destinationAccount.id, amount = transferAmount)
                                 transactionService.createTransfer(createTransferCommand)
                                         .test()
                                         .assertNoValues()
@@ -229,7 +229,7 @@ object TransactionServiceTest : Spek({
                 listOf(-23f, -1f, 0f)
                         .forEach { value ->
                             it("if amount is $value returns InvalidTransactionAmmountException error") {
-                                val createTransferCommand = CreateTransferCommand(from = originAccount.id, to = destinationAccount.id, amount = value)
+                                val createTransferCommand = CreateTransferCommand(origin = originAccount.id, destination = destinationAccount.id, amount = value)
 
                                 transactionService.createTransfer(createTransferCommand)
                                         .test()
@@ -240,19 +240,19 @@ object TransactionServiceTest : Spek({
                         }
 
                 it("if origin has enough balance creates successfully") {
-                    val transfer = Transfer(id = UUID.randomUUID(), from = originAccount, to = destinationAccount, amount = 8f, date = LocalDateTime.now())
+                    val transfer = Transfer(id = UUID.randomUUID(), origin = originAccount, destination = destinationAccount, amount = 8f, date = LocalDateTime.now())
                     every { repository.createTransaction(any()) } returns Single.just(transfer)
                     every { repository.findByAccountId(originAccount.id) } returns Single.just(listOf(deposit9dols))
                     every { accountService.findById(originAccount.id) } returns Single.just(originAccount)
                     every { accountService.findById(destinationAccount.id) } returns Single.just(destinationAccount)
 
-                    val createTransferCommand = CreateTransferCommand(from = originAccount.id, to = destinationAccount.id, amount = transfer.amount)
+                    val createTransferCommand = CreateTransferCommand(origin = originAccount.id, destination = destinationAccount.id, amount = transfer.amount)
                     transactionService.createTransfer(createTransferCommand)
                             .test()
                             .assertNoErrors()
                             .assertValue { t ->
-                                (t as Transfer).from == originAccount
-                                        && t.to == destinationAccount
+                                (t as Transfer).origin == originAccount
+                                        && t.destination == destinationAccount
                                         && t.amount == transfer.amount
                             }
                             .assertComplete()
@@ -272,7 +272,7 @@ object TransactionServiceTest : Spek({
                     every { accountService.findById(originAccount.id) } returns Single.error(AccountNotFoundException(originAccount.id))
                     every { repository.findByAccountId(originAccount.id) } returns Single.just(emptyList())
 
-                    val createWithdrawCommand = CreateWithdrawCommand(from = originAccount.id, amount = 10f)
+                    val createWithdrawCommand = CreateWithdrawCommand(origin = originAccount.id, amount = 10f)
                     transactionService.createWithdraw(createWithdrawCommand)
                             .test()
                             .assertNoValues()
@@ -284,8 +284,8 @@ object TransactionServiceTest : Spek({
                     verify(exactly = 0) { repository.createTransaction(any()) }
                 }
 
-                val deposit9dols = Deposit(id = UUID.randomUUID(), to = originAccount, amount = 9f, date = LocalDateTime.now())
-                val withdraw3dols = Withdraw(id = UUID.randomUUID(), from = originAccount, amount = 3f, date = LocalDateTime.now())
+                val deposit9dols = Deposit(id = UUID.randomUUID(), destination = originAccount, amount = 9f, date = LocalDateTime.now())
+                val withdraw3dols = Withdraw(id = UUID.randomUUID(), origin = originAccount, amount = 3f, date = LocalDateTime.now())
 
                 mapOf(
                         listOf(deposit9dols) to 10f,
@@ -298,7 +298,7 @@ object TransactionServiceTest : Spek({
                                 every { accountService.findById(originAccount.id) } returns Single.just(originAccount)
                                 every { repository.findByAccountId(originAccount.id) } returns Single.just(transactions)
 
-                                val createWithdrawCommand = CreateWithdrawCommand(from = originAccount.id, amount = transferAmount)
+                                val createWithdrawCommand = CreateWithdrawCommand(origin = originAccount.id, amount = transferAmount)
                                 transactionService.createWithdraw(createWithdrawCommand)
                                         .test()
                                         .assertNoValues()
@@ -315,7 +315,7 @@ object TransactionServiceTest : Spek({
                 listOf(-23f, -1f, 0f)
                         .forEach { value ->
                             it("if amount is $value returns InvalidTransactionAmmountException error") {
-                                val createWithdrawCommand = CreateWithdrawCommand(from = originAccount.id, amount = value)
+                                val createWithdrawCommand = CreateWithdrawCommand(origin = originAccount.id, amount = value)
 
                                 transactionService.createWithdraw(createWithdrawCommand)
                                         .test()
@@ -326,17 +326,17 @@ object TransactionServiceTest : Spek({
                         }
 
                 it("if origin has enough balance creates successfully") {
-                    val withdraw = Withdraw(id = UUID.randomUUID(), from = originAccount, amount = 8f, date = LocalDateTime.now())
+                    val withdraw = Withdraw(id = UUID.randomUUID(), origin = originAccount, amount = 8f, date = LocalDateTime.now())
                     every { repository.createTransaction(any()) } returns Single.just(withdraw)
                     every { repository.findByAccountId(originAccount.id) } returns Single.just(listOf(deposit9dols))
                     every { accountService.findById(originAccount.id) } returns Single.just(originAccount)
 
-                    val createWithdrawCommand = CreateWithdrawCommand(from = originAccount.id, amount = withdraw.amount)
+                    val createWithdrawCommand = CreateWithdrawCommand(origin = originAccount.id, amount = withdraw.amount)
                     transactionService.createWithdraw(createWithdrawCommand)
                             .test()
                             .assertNoErrors()
                             .assertValue { t ->
-                                (t as Withdraw).from == originAccount
+                                (t as Withdraw).origin == originAccount
                                         && t.amount == withdraw.amount
                             }
                             .assertComplete()

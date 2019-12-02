@@ -14,8 +14,8 @@ object TransactionRepositoryTest : Spek({
     describe("TransactionInMemoryRepository") {
         val account = Account(id = UUID.randomUUID(), owner = "Felipi", creationData = LocalDateTime.now())
 
-        val deposit = Deposit(id = UUID.randomUUID(), to = account, amount = 10f, date = LocalDateTime.now())
-        val withdraw = Withdraw(id = UUID.randomUUID(), from = account, amount = 7f, date = LocalDateTime.now())
+        val deposit = Deposit(id = UUID.randomUUID(), destination = account, amount = 10f, date = LocalDateTime.now())
+        val withdraw = Withdraw(id = UUID.randomUUID(), origin = account, amount = 7f, date = LocalDateTime.now())
 
         describe("When account with id $account.id already exists") {
             var repository = TransactionInMemoryRepository(ConcurrentHashMap())
@@ -78,7 +78,7 @@ object TransactionRepositoryTest : Spek({
             describe("Creating new transaction") {
                 describe("Deposit") {
                     it("for account ${account.id} creates it") {
-                        val newDeposit = Deposit(id = UUID.randomUUID(), to = account, amount = 10f, date = LocalDateTime.now())
+                        val newDeposit = Deposit(id = UUID.randomUUID(), destination = account, amount = 10f, date = LocalDateTime.now())
 
                         repository.createTransaction(newDeposit)
                                 .test()
@@ -98,8 +98,8 @@ object TransactionRepositoryTest : Spek({
 
                 describe("Transfer") {
                     it("for account ${account.id} creates it ") {
-                        val accountTo = Account(id = UUID.randomUUID(), owner = "Destination", creationData = LocalDateTime.now())
-                        val newTransfer = Transfer(id = UUID.randomUUID(), from = account, to = accountTo, amount = 3f, date = LocalDateTime.now())
+                        val destinationAccount = Account(id = UUID.randomUUID(), owner = "Destination", creationData = LocalDateTime.now())
+                        val newTransfer = Transfer(id = UUID.randomUUID(), origin = account, destination = destinationAccount, amount = 3f, date = LocalDateTime.now())
 
                         repository.createTransaction(newTransfer)
                                 .test()
@@ -119,7 +119,7 @@ object TransactionRepositoryTest : Spek({
 
                 describe("Withdraw") {
                     it("for account ${account.id} creates it ") {
-                        val newWithdraw = Withdraw(id = UUID.randomUUID(), from = account, amount = 3f, date = LocalDateTime.now())
+                        val newWithdraw = Withdraw(id = UUID.randomUUID(), origin = account, amount = 3f, date = LocalDateTime.now())
 
                         repository.createTransaction(newWithdraw)
                                 .test()

@@ -33,7 +33,7 @@ class TransactionInMemoryRepository(@Inject @Named("TransactionDataSource") priv
 
     private fun persistDeposit(deposit: Deposit): Single<Transaction> {
         return Single.defer {
-            addTransactionToAccount(deposit.to.id, deposit)
+            addTransactionToAccount(deposit.destination.id, deposit)
 
             Single.just(deposit)
         }
@@ -41,8 +41,8 @@ class TransactionInMemoryRepository(@Inject @Named("TransactionDataSource") priv
 
     private fun persistTransfer(transfer: Transfer): Single<Transaction> {
         return Single.defer {
-            addTransactionToAccount(transfer.from.id, transfer)
-            addTransactionToAccount(transfer.to.id, transfer)
+            addTransactionToAccount(transfer.origin.id, transfer)
+            addTransactionToAccount(transfer.destination.id, transfer)
 
             Single.just(transfer)
         }
@@ -51,7 +51,7 @@ class TransactionInMemoryRepository(@Inject @Named("TransactionDataSource") priv
 
     private fun persistWithdraw(withdraw: Withdraw): Single<Transaction> {
         return Single.defer {
-            addTransactionToAccount(withdraw.from.id, withdraw)
+            addTransactionToAccount(withdraw.origin.id, withdraw)
 
             Single.just(withdraw)
         }

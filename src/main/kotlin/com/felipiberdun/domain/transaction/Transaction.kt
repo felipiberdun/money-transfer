@@ -19,22 +19,22 @@ sealed class Transaction(open val id: UUID, val type: TransactionType)
 
 data class Deposit(
         override val id: UUID,
-        val to: Account,
+        val destination: Account,
         val amount: Float,
         val date: LocalDateTime
 ) : Transaction(id, TransactionType.DEPOSIT)
 
 data class Transfer(
         override val id: UUID,
-        val from: Account,
-        val to: Account,
+        val origin: Account,
+        val destination: Account,
         val amount: Float,
         val date: LocalDateTime
 ) : Transaction(id, TransactionType.TRANSFER)
 
 data class Withdraw(
         override val id: UUID,
-        val from: Account,
+        val origin: Account,
         val amount: Float,
         val date: LocalDateTime
 ) : Transaction(id, TransactionType.WITHDRAW)

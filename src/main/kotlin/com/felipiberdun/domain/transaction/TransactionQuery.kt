@@ -17,44 +17,44 @@ sealed class TransactionQuery(val type: TransactionType) {
 
 data class DepositQuery(
         val id: UUID,
-        val to: UUID,
+        val destination: UUID,
         val amount: Float,
         val date: LocalDateTime
 ) : TransactionQuery(TransactionType.DEPOSIT)
 
 data class TransferQuery(
         val id: UUID,
-        val from: UUID,
-        val to: UUID,
+        val origin: UUID,
+        val destination: UUID,
         val amount: Float,
         val date: LocalDateTime
 ) : TransactionQuery(TransactionType.TRANSFER)
 
 data class WithdrawQuery(
         val id: UUID,
-        val from: UUID,
+        val origin: UUID,
         val amount: Float,
         val date: LocalDateTime
 ) : TransactionQuery(TransactionType.WITHDRAW)
 
 fun Deposit.toQuery() = DepositQuery(
         id = this.id,
-        to = this.to.id,
+        destination = this.destination.id,
         amount = this.amount,
         date = this.date
 )
 
 fun Transfer.toQuery() = TransferQuery(
         id = this.id,
-        from = this.from.id,
-        to = this.to.id,
+        origin = this.origin.id,
+        destination = this.destination.id,
         amount = this.amount,
         date = this.date
 )
 
 fun Withdraw.toQuery() = WithdrawQuery(
         id = this.id,
-        from = this.from.id,
+        origin = this.origin.id,
         amount = this.amount,
         date = this.date
 )

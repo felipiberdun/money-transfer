@@ -32,9 +32,9 @@ class TransactionControllerTest : Spek({
         val originAccount = Account(id = UUID.randomUUID(), owner = "Origin Account", creationData = LocalDateTime.now())
         val destinationAccount = Account(id = UUID.randomUUID(), owner = "Destination Account", creationData = LocalDateTime.now())
 
-        val depositOrigin = Deposit(id = UUID.randomUUID(), to = originAccount, amount = 11f, date = LocalDateTime.now())
-        val withdrawOrigin = Withdraw(id = UUID.randomUUID(), from = originAccount, amount = 3f, date = LocalDateTime.now())
-        val depositDestination = Deposit(id = UUID.randomUUID(), to = destinationAccount, amount = 10f, date = LocalDateTime.now())
+        val depositOrigin = Deposit(id = UUID.randomUUID(), destination = originAccount, amount = 11f, date = LocalDateTime.now())
+        val withdrawOrigin = Withdraw(id = UUID.randomUUID(), origin = originAccount, amount = 3f, date = LocalDateTime.now())
+        val depositDestination = Deposit(id = UUID.randomUUID(), destination = destinationAccount, amount = 10f, date = LocalDateTime.now())
 
         describe("/transactions") {
             beforeGroup {
@@ -61,7 +61,7 @@ class TransactionControllerTest : Spek({
 
                 val deposit = (response as DepositQuery)
                 assertEquals(deposit.id, depositOrigin.id)
-                assertEquals(deposit.to, originAccount.id)
+                assertEquals(deposit.destination, originAccount.id)
                 assertEquals(deposit.amount, depositOrigin.amount)
                 assertEquals(deposit.date, depositOrigin.date)
             }

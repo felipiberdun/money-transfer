@@ -41,7 +41,7 @@ class TransactionController(private val transactionService: TransactionService,
     fun createDeposit(@PathVariable accountId: UUID,
                       @Body createDepositPayload: CreateDepositPayload): Single<MutableHttpResponse<Void>> {
         val createDepositCommand = CreateDepositCommand(
-                to = accountId,
+                destination = accountId,
                 amount = createDepositPayload.amount
         )
 
@@ -54,8 +54,8 @@ class TransactionController(private val transactionService: TransactionService,
     fun createTransfer(@PathVariable accountId: UUID,
                        @Body createTransferPayload: CreateTransferPayload): Single<MutableHttpResponse<Void>> {
         val createTransferCommand = CreateTransferCommand(
-                from = accountId,
-                to = createTransferPayload.to,
+                origin = accountId,
+                destination = createTransferPayload.to,
                 amount = createTransferPayload.amount
         )
 
@@ -68,7 +68,7 @@ class TransactionController(private val transactionService: TransactionService,
     fun createWithdraw(@PathVariable accountId: UUID,
                        @Body createWithdrawPayload: CreateWithdrawPayload): Single<MutableHttpResponse<Void>> {
         val createWithdrawCommand = CreateWithdrawCommand(
-                from = accountId,
+                origin = accountId,
                 amount = createWithdrawPayload.amount
         )
 
