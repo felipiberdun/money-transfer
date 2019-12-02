@@ -1,14 +1,12 @@
 # Money Transfer
 
 ## About
----
 This is a simple application to create accounts and manage money transfer between them.
-It was created using Kotlin language and Micronaut framework in a reactive model.
-Spek2 and Mockk were used to write the tests.
+
+It was created using Kotlin language and Micronaut framework in a reactive model. Spek2 and Mockk were used to write the tests.
 
 
 ## Starting up the application
----
 
 1. Download this project or git clone it using `git clone git@github.com:felipiberdun/money-transfer.git`;
 1. Open project's root folder and run `gradlew clean build` to compile and generate the artifact;
@@ -16,7 +14,6 @@ Spek2 and Mockk were used to write the tests.
 1. The message `Startup completed in Xms. Server Running: http://localhost:8080` signals that the application is up and running;
 
 ## Routes
----
 
 ### Creating an account
 #### Request
@@ -118,3 +115,9 @@ POST - http://localhost:8080/accounts/{accountId}/transfers
 ### Response
 201 Created - Location header will provide the new resource
 
+## Next steps
+
+1. To use GraalVM to compile the application down to native code;
+1. Improve Swagger/OpenAPI documentation;
+1. Set up and compare data sources;
+1. Load testings;
