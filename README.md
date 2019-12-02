@@ -63,7 +63,7 @@ GET - http://localhost:8080/accounts/{accountId}/transactions
 [
     {
         "id": "92a2d0f3-d77a-49c1-a967-3cc47cdf40eb",
-        "to": "33accfc6-9e94-4c22-ad1d-24151cfc8de7",
+        "destination": "33accfc6-9e94-4c22-ad1d-24151cfc8de7",
         "amount": 23.0,
         "date": "2019-12-01T20:10:10.275",
         "type": "DEPOSIT"
@@ -108,7 +108,7 @@ POST - http://localhost:8080/accounts/{accountId}/transfers
 ```json
 {
 	"amount": 40,
-	"to": "6c6872a4-9994-44a7-b709-652c296449d5"
+	"destination": "6c6872a4-9994-44a7-b709-652c296449d5"
 }
 ```
 
